@@ -10,10 +10,10 @@ Please refer to the XDAQ Guide to know more details about it. The guide is avail
 
 ## XTable Resources
 
-1) XTable Arduino Library and examples (available at XTable-Arduino/XTable)
-2) XEEPROM Arduino Library and examples (available at XTable-Arduino/XEEPROM)
-3) TestXTable Project to test all expected functionality through ArduinoUnit test library (available at XTable-Arduino/TestXTable)
-4) BlinkingLEDs Project a complete demo application using Firmata protocol (available at XTable-Arduino/BlinkingLEDs)
+1. XTable Arduino Library and examples (available at XTable-Arduino/XTable)
+2. XEEPROM Arduino Library and examples (available at XTable-Arduino/XEEPROM)
+3. TestXTable Project to test all expected functionality through ArduinoUnit test library (available at XTable-Arduino/TestXTable)
+4. BlinkingLEDs Project a complete demo application using Firmata protocol (available at XTable-Arduino/BlinkingLEDs)
    This application is available both from console and GUI mode. The demo is available through standard serial port access (e.g. cutecom, putty) and through an openFrameworks demo application.
 
 
