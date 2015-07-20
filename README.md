@@ -10,8 +10,8 @@ Please refer to the XDAQ Guide to know more details about it. The guide is avail
 
 ## XTable Resources
 
-1. XTable Arduino Library and examples (available at XTable-Arduino/XTable)
-2. XEEPROM Arduino Library and examples (available at XTable-Arduino/XEEPROM)
+1. XTable Arduino Library and examples (available at XTable-Arduino/src)
+2. XEEPROM Arduino Library and examples (available at XTable-Arduino/src/XEEPROM)
 3. TestXTable Project to test all expected functionality through ArduinoUnit test library (available at XTable-Arduino/TestXTable)
 4. BlinkingLEDs Project a complete demo application using Firmata protocol (available at XTable-Arduino/BlinkingLEDs)
    This application is available both from console and GUI mode. The demo is available through standard serial port access (e.g. cutecom, putty) and through an openFrameworks demo application.
@@ -19,9 +19,20 @@ Please refer to the XDAQ Guide to know more details about it. The guide is avail
 
 ### From source
 - Download the latest release
-- Or clone it from Github using the command `git clone git@github.com:misteralex/XTable-Arduino.git`
+- Or clone it from Github using the command `git clone git@github.com:misteralex/XTable-Arduino
 - Check the XDAQ Guide and this readme about usage options.
 
-
 ## Requirements
-You need to have Debianinux, XDAQ or equivalent environment that include Arduino IDE or Eclipse C++ IDE.
+You need to have a Debian based environment (Wheezy, Jessie), Ubuntu or a virtual Debian based appliance like Debianinux
+
+## Usage
+The XDAQ Guide is a comprehensive document to use XDAQ project as you like. It is strongly adviced to use XDAQ Tools.
+
+Refer to www.embeddedrevolution.info for more information.
+
+
+## License
+XDAQ, Debianinux as well as XTable/XEEPROM Arduino libraries and the related documentation are free software; you can redistribute them and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation.
+
+## Contribution
+Copyright AF 2015
