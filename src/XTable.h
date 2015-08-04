@@ -1,28 +1,28 @@
 /****************************************************************************
  * XTable.h - Class for Arduino sketches                                    *
- * Copyright (C) 2014 by AF                                                 *
+ * Copyright (C) 2014 by AF                                  				*
  *                                                                          *
  * This file is part of AF Support                                          *
  *                                                                          *
  *   XTable is free software: you can redistribute it and/or modify it      *
- *   under the terms of the GNU General Public License as published         *
+ *   under the terms of the GNU Lesser General Public License as published  *
  *   by the Free Software Foundation, either version 3 of the License, or   *
  *   (at your option) any later version.                                    *
  *                                                                          *
  *   XTable is distributed in the hope that it will be useful,              *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of         *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
- *   GNU General Public License for more details.                           *
+ *   GNU Lesser General Public License for more details.                    *
  *                                                                          *
- *   You should have received a copy of the GNU General Public              *
+ *   You should have received a copy of the GNU Lesser General Public       *
  *   License along with XTable. If not, see <http://www.gnu.org/licenses/>. *
  ****************************************************************************/
 
 /**
  *  @file    XTable.h
  *  @author  AF
- *  @date    25/1/2015
- *  @version 1.0
+ *  @date    08/2015
+ *  @version 2.0
  *
  *	@brief CRUD table as persistent storage implementation for embedded devices
  *
@@ -34,6 +34,7 @@
  *  circular buffer in EEPROM and volatile SRAM.
  *
  */
+
 
 #include "XEEPROM/XEEPROM.h"
 
@@ -82,22 +83,7 @@ template <class X> class XTable
      * @retval false unsuccess. Required entry cannot be created
      */
     bool Insert(X item);
-
-    /**
-     * @brief Method to add new data into the table with specific index.
-     *
-     * This method provides CRUD operation to create new data
-     * at the end of current table. It creates specified item into runtime
-     * list on SRAM. Specified index (positive integer) is assigned to
-     * the new entry providing quicker access to data.
-     *
-     * @param X specify the new entry to add into the table
-     * @param id specify a positive integer as identifier of the entry
-     * @retval true successfully created the new entry
-     * @retval false unsuccess. Required entry cannot be created
-     */
-    bool Insert(X item, unsigned char id);
-
+    
     /**
      * @brief Method to read current item on the table.
      *
@@ -109,17 +95,6 @@ template <class X> class XTable
      * @retval NULL for empty list
      */
     X* Select();
-
-    /**
-     * @brief Method to read current item on the table with specified index.
-     *
-     * This method provides CRUD operation to read the item
-     * available on the table that matches specified index.
-     *
-     * @param id specify a positive integer as identifier of the entry
-     * @retval current entry on the table that matches specified index.
-     */
-    X* Select(unsigned char id);
 
     /**
      * @brief Method to update current item on the table.
@@ -144,49 +119,6 @@ template <class X> class XTable
      * @retval false unsuccess. Empty list.
      */
     bool Delete();
-
-    /**
-     * @brief Method to get current index from the table
-     *
-     * This method provides the index assigned on the table at
-     * current list position. It offers a quicker access to data
-     * on the table.
-     *
-     * @param None
-     * @retval index related to the entry at current position
-     * @retval NULL for empty list
-     */
-    unsigned char GetId();
-
-    /**
-     * @brief Method to enable or disable current entry from table.
-     *
-     * This method allow setting the status of current entry on
-     * the table available at current position. An entry should be
-     * in enabled status to consider it between available items on
-     * the table. An entry should be in disabled status to keep it in
-     * the table but ignoring his presence over CRUD operations.
-     *
-     * @param status true include current entry on the table
-     * @param status false exclude current entry from the table
-     * @retval true new status successfully assigned to current entry
-     * @retval false unsuccess. Empty list.
-     */
-    bool Status(bool status);
-
-    /**
-     * @brief Method to browse all available data into the table
-     *
-     * This method allow browsing of all existing entries into the
-     * table. It allow to browse all entries into the table depending
-     * on their status.
-     *
-     * @param assign true to browse all available entries disregarding
-     *        their status.
-     * @param assign false to browse only available enabled entries
-     * @retval None
-     */
-    void BrowseAll(bool status);
 
     /**
      * @brief Method to remove all available entries from the table
@@ -312,7 +244,6 @@ template <class X> class XTable
     struct XItem
     {
         Y item;
-        unsigned char id;
         bool enabled;
     };
 
@@ -328,29 +259,16 @@ template <class X> class XTable
     struct Item
     {
         Y item;
-        unsigned char id;
         bool enabled;
         Item<Y> *next;
     };
 
     unsigned int counter;
-    unsigned int counter_enabled;
     unsigned int buffer_max_items;
 
-    /**
-     *  Global variable as flag to browse all existing items or only those with enabled status.
-     *
-     * true apply CRUD operations to all existing items of the table
-     * false apply CRUD operations only considering enabled items
-     */
-    bool browse_all;
-
     Item<X> *first_record;
-    Item<X> *last_record;
     Item<X> *current_record;
     Item<X> *new_record;
-    Item<X> *current_free_record;
-
 
     /**< EEPROM Section */
     int eeprom_header_begin;
@@ -360,10 +278,6 @@ template <class X> class XTable
     int top_parameter_ptr;
 
     void Init();
-
-    bool PopFreeRecord();
-
-    bool PushFreeRecord();
 
     int IncCurrentLocation(int curr_location);
 
@@ -397,7 +311,8 @@ template <class X> XTable<X>::XTable()
     // Initialize main global list pointers
     Init();
 
-    current_free_record = NULL;
+    //current_free_record = NULL;
+    first_record = NULL;
 
     // Flag for InitStorage process
     eeprom_max_items = -1;
@@ -405,51 +320,50 @@ template <class X> XTable<X>::XTable()
 
 template <class X> XTable<X>::~XTable()
 {
-    Clean();
+	current_record = first_record;
 
-    current_record = current_free_record;
-    while (current_record)
-    {
-        new_record = current_free_record->next;
-        delete current_record;
-        current_record = new_record;
-    }
+	while (current_record)
+	{
+	   new_record = current_record->next;
+	   delete current_record;
+	   current_record = new_record;
+	}
+
 }
 
 
 
 template <class X> void XTable<X>::Init()
 {
-    first_record = NULL;
-    last_record = NULL;
     current_record = NULL;
     new_record = NULL;
-
     counter = 0;
-    counter_enabled = 0;
-    browse_all = true;
 }
 
 template <class X> bool XTable<X>::InitBuffer(int max_items)
 {
     unsigned int it = 0;
 
+    // Buffer already initialized
+    if (first_record) return false;
+
+    first_record = new Item<X>;
+    if (!first_record) return false;
+
+    current_record = first_record;
+
     do
     {
         new_record = new Item<X>;
 
-        if (!current_free_record) current_free_record = new_record;
-        else
-        {
-            new_record->next = current_free_record;
-            current_free_record = new_record;
-        }
-
+        current_record->next = new_record;
+        current_record = new_record;
         it++;
     } while ((new_record != NULL) && (it < max_items));
 
     if (it < max_items) return false;
 
+    current_record->next = NULL;
     buffer_max_items = max_items;
 
     xitem = new XItem<X>;
@@ -457,140 +371,33 @@ template <class X> bool XTable<X>::InitBuffer(int max_items)
     return true;
 }
 
-template <class X> bool XTable<X>::PopFreeRecord()
-{
-    if ((buffer_max_items < 0) || (!current_free_record)) return false;
-
-    new_record = current_free_record;
-    current_free_record = current_free_record->next;
-
-    return true;
-}
-
-template <class X> bool XTable<X>::PushFreeRecord()
-{
-    if ((buffer_max_items < 0) && (!new_record)) return false;
-
-    new_record->next = current_free_record;
-    current_free_record = new_record;
-
-    return true;
-}
-
 template <class X> bool XTable<X>::Insert(X item)
 {
-    if (!PopFreeRecord()) return false;
 
-    new_record->enabled = true;
-    new_record->id = 0;
-    new_record->item = item;
-    new_record->next = NULL;
+	current_record = first_record;
 
-    if(first_record)
-    {
-        // Get last available item on current list
-        while (current_record->next) current_record=current_record->next;
+	if (current_record)
+	{
+		while ((current_record->next) && (current_record->enabled))
+				current_record = current_record->next;
 
-        current_record->next = new_record;
-        new_record->id = current_record->id+1;
-        current_record = new_record;
-    }
-    else
-    {
-        first_record = new_record;
-        last_record = first_record;
-        current_record = first_record;
-    }
+		// All available records already used
+		if (!current_record->next) return false;
+	}
 
+	// Insert new item
+	current_record->enabled = true;
+	current_record->item = item;
     counter++;
-    counter_enabled++;
 
     return true;
 }
-
-
-template <class X> bool XTable<X>::Insert(X item, unsigned char id)
-{
-    bool new_item;
-
-    if (!PopFreeRecord()) return false;
-
-    new_record->enabled = true;
-    new_record->id = id;
-    new_record->item = item;
-    new_record->next = NULL;
-
-    new_item=true;
-    if(first_record)
-    {
-        if (first_record->id>id)
-        {
-            new_record->next = first_record;
-            first_record = new_record;
-        }
-        else
-        {
-            last_record = first_record;
-            current_record = first_record->next;
-
-            while ( (!((last_record->id<id) && (current_record->id>id))) &&
-                    (current_record->id!=id) && (current_record) )
-            {
-                last_record = current_record;
-                current_record = current_record->next;
-            }
-
-            if (current_record)
-            {
-                if (current_record->id!=id)
-                {
-                    last_record->next = new_record;
-                    new_record->next = current_record;
-                    current_record = new_record;
-                }
-                else new_item=false;
-            }
-            else
-            {
-                last_record->next = new_record;
-                current_record = new_record;
-            }
-        }
-    }
-
-    // Current list is empty
-    else
-    {
-        first_record = new_record;
-        last_record = first_record;
-        current_record = first_record;
-    }
-
-    if (new_item)
-    {
-        counter++;
-        counter_enabled++;
-    }
-    else PushFreeRecord();
-
-    return new_item;
-}
-
 
 template <class X> X* XTable<X>::Select()
 {
-    if (!current_record) return NULL;
+    if (!current_record->enabled) return NULL;
     return &(current_record->item);
 }
-
-
-template <class X> X* XTable<X>::Select(unsigned char id)
-{
-    current_record = first_record;
-    while ((current_record->id!=id) && (current_record)) Next();
-    return &(current_record->item);
-}
-
 
 template <class X> bool XTable<X>::Update(X item)
 {
@@ -602,68 +409,24 @@ template <class X> bool XTable<X>::Update(X item)
 
 template <class X> bool XTable<X>::Delete()
 {
-    Item<X> *tmp_record;
-
     if (!current_record) return false;
 
-    if (!current_record->next)
-    {
-        first_record = NULL;
-        last_record = first_record;
-        new_record = NULL;
-    }
-    else
-    {
-        last_record->next = current_record->next;
-        new_record = current_record->next;
-    }
-
-    if (current_record->enabled) counter_enabled--;
-
-    tmp_record = new_record;
-    new_record = current_record;
-    if (!PushFreeRecord()) return false;
-
-    current_record = tmp_record;
+    current_record->enabled = false;
     counter--;
-
     return true;
-}
-
-template <class X> unsigned char XTable<X>::GetId()
-{
-    if (!current_record) return NULL;
-    return current_record->id;
-}
-
-template <class X> bool XTable<X>::Status(bool status)
-{
-    if (!current_record) return false;
-
-    if (status) counter_enabled++;
-    else counter_enabled--;
-
-    current_record->enabled = status;
-    return true;
-}
-
-template <class X> void XTable<X>::BrowseAll(bool status)
-{
-    browse_all = status;
 }
 
 template <class X> void XTable<X>::Clean()
 {
     if (first_record)
     {
-        new_record = first_record;
+        current_record = first_record;
 
-        while (new_record)
+        do
         {
-            current_record=new_record->next;
-            PushFreeRecord();
-            new_record = current_record;
-        }
+        	current_record->enabled = false;
+            current_record=current_record->next;
+        } while (current_record);
     }
 
     Init();
@@ -674,25 +437,24 @@ template <class X> bool XTable<X>::Top()
     if (!first_record) return false;
 
     current_record = first_record;
-    if ((!browse_all) && (current_record && (!current_record->enabled))) return Next();
-    return true;
+    if ((current_record && (!current_record->enabled))) return Next();
+
+    return current_record->enabled;
 }
 
 template <class X> bool XTable<X>::Next()
 {
     if ((!first_record) || (!current_record)) return false;
-        last_record = current_record;
-        current_record = current_record->next;
 
-    if ((!browse_all) && (current_record && (!current_record->enabled))) Next();
+    current_record = current_record->next;
+    if ((current_record && (!current_record->enabled))) Next();
 
     return (current_record);
 }
 
 template <class X> unsigned int XTable<X>::Counter()
 {
-    if (browse_all) return counter;
-    else return counter_enabled;
+	return counter;
 }
 
 
@@ -823,7 +585,6 @@ template <class X> bool XTable<X>::SaveStorage()
     do
     {
         xitem->item = current_record->item;
-        xitem->id = current_record->id;
         xitem->enabled = current_record->enabled;
 
         eeprom.Write(curr_parameter_ptr, *xitem);
@@ -863,10 +624,7 @@ template <class X> bool XTable<X>::LoadStorage()
         xitem = eeprom.Read(curr_parameter_ptr);
 
         if (Insert(xitem->item))
-        {
-            current_record->id = xitem->id;
 			current_record->enabled = xitem->enabled;
-        }
         else return false;
 
         curr_status_ptr = IncCurrentLocation(curr_status_ptr);

@@ -1,29 +1,29 @@
 /********************************************************************************
  *   TestXTable - Unit Test for XTable Class                                    *
- *   Copyright (C) 2015 by AF                                                   *
+ *   Copyright (C) 2015 by AF                                    				*
  *                                                                              *
  *   This file is part of XDAQ Virtual Appliance                                *
  *   (see more on www.embeddedrevolution.info).                                 *
  *                                                                              *
  *   TestXTable is free software: you can redistribute it and/or modify it      *
- *   under the terms of the GNU General Public License as published             *
+ *   under the terms of the GNU Lesser General Public License as published      *
  *   by the Free Software Foundation, either version 3 of the License, or       *
  *   (at your option) any later version.                                        *
  *                                                                              *
  *   TestXTable is distributed in the hope that it will be useful,              *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of             *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- *   GNU General Public License for more details.                               *
+ *   GNU Lesser General Public License for more details.                        *
  *                                                                              *
- *   You should have received a copy of the GNU General Public                  *
+ *   You should have received a copy of the GNU Lesser General Public           *
  *   License along with TestXTable. If not, see <http:///www.gnu.org/licenses/> *
  ********************************************************************************/
 
 /**
  *  @file    TestXTable.cpp (or TestXTable.ino)
  *  @author  AF
- *  @date    25/1/2015
- *  @version 1.0
+ *  @date    08/2015
+ *  @version 1.1
  *
  *	@brief Unit Test application for XTable CRUD table embedded class
  *
@@ -39,10 +39,10 @@
 #include "XTable.h"
 #include "ArduinoUnit.h"
 
-#define PRINT(m) Serial.print(m);
-#define DEBUG(value) Serial.print(#value); Serial.print("="); Serial.println(value)
+#define DEBUG(value) Serial.print("\n"); Serial.print(__LINE__); Serial.print(":"); Serial.print(#value); Serial.print("="); Serial.println(value);
 
 
+#define MAX_NUM_ITEMS 30
 #define CHECK_STORAGE_OPERATIONS 0
 
 /// XTable item structure definition (this data tyepe is part of BlinkingLEDs Project)
@@ -72,6 +72,20 @@ void InsertSample()
 	}
 }
 
+test(InsertMaximum)
+{
+	unsigned char id;
+
+	blinking_LEDs.Clean();
+
+	for(id=0; id<MAX_NUM_ITEMS; id++)
+	{
+		LED.pin = id;
+		assertTrue(blinking_LEDs.Insert(LED));
+	}
+
+	assertFalse(blinking_LEDs.Insert(LED));
+}
 
 test(Clean)
 {
@@ -95,44 +109,6 @@ test(Insert)
 	assertEqual(blinking_LEDs.Counter(),1);
 }
 
-test(InsertCheckId)
-{
-	blinking_LEDs.Clean();
-
-	assertTrue(blinking_LEDs.Insert(LED));
-	blinking_LEDs.Top();
-	assertEqual(blinking_LEDs.GetId(),0);
-}
-
-test(InsertId)
-{
-	blinking_LEDs.Clean();
-
-	assertTrue(blinking_LEDs.Insert(LED));
-	assertEqual(blinking_LEDs.GetId(),0);
-
-	assertTrue(blinking_LEDs.Insert(LED,88));
-	assertEqual(blinking_LEDs.GetId(),88);
-}
-
-test(InsertIdTenEntries)
-{
-	unsigned char id;
-
-	blinking_LEDs.Clean();
-
-	for(id=0; id<10; id++)
-		assertTrue(blinking_LEDs.Insert(LED,id*10));
-
-	blinking_LEDs.Top();
-
-	for(id=0; id<10; id++)
-	{
-		assertEqual(blinking_LEDs.GetId(),id*10);
-		blinking_LEDs.Next();
-	}
-}
-
 test(Select)
 {
 	blinking_LEDs.Clean();
@@ -143,21 +119,6 @@ test(Select)
 	LED.pin = 0;
 	LED = *blinking_LEDs.Select();
 	assertEqual(LED.pin, 88);
-}
-
-test(SelectIdTenEntries)
-{
-	unsigned char id;
-
-        blinking_LEDs.Clean();
-        assertTrue(blinking_LEDs.Select(1)==NULL);
-
-	InsertSample();
-	for(id=9; id>0; id--)
-	{
-		LED = *blinking_LEDs.Select(id);
-		assertEqual(LED.pin, id);
-	}
 }
 
 test(Update)
@@ -179,33 +140,6 @@ test(Update)
 	assertEqual(LED.pin, 88);
 }
 
-test(UpdateSpecificId)
-{
-	unsigned char id;
-
-	InsertSample();
-
-	for(id=9; id>0; id--)
-	{
-		LED = *blinking_LEDs.Select(id);
-		assertEqual(LED.pin, id);
-	}
-
-	LED.pin = 88;
-	blinking_LEDs.Select(5);
-	assertTrue(blinking_LEDs.Update(LED));
-
-	for(id=9; id>0; id--)
-	{
-		LED = *blinking_LEDs.Select(id);
-		if (id==5)
-		{
-			assertEqual(LED.pin, 88);
-		}
-		else assertEqual(LED.pin, id);
-	}
-}
-
 test(Delete)
 {
 	blinking_LEDs.Clean();
@@ -218,121 +152,23 @@ test(Delete)
 	assertTrue(blinking_LEDs.Select()==NULL);
 }
 
-test(GetId)
+test(DeleteAll)
 {
+	unsigned char id;
+
 	blinking_LEDs.Clean();
-
-	assertTrue(blinking_LEDs.Insert(LED));
-	assertTrue(blinking_LEDs.Insert(LED));
-	assertTrue(blinking_LEDs.Insert(LED,88));
-	assertTrue(blinking_LEDs.Insert(LED,8));
-	assertTrue(blinking_LEDs.Insert(LED));
-
-	blinking_LEDs.Insert(LED);
-	blinking_LEDs.Insert(LED);
-	blinking_LEDs.Insert(LED,88);
-	blinking_LEDs.Insert(LED,8);
-	blinking_LEDs.Insert(LED);
-
-	blinking_LEDs.Top();
-	assertEqual(blinking_LEDs.GetId(),0);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),1);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),8);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),88);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),89);
-}
-
-test(Status)
-{
-	blinking_LEDs.Clean();
-	assertTrue(blinking_LEDs.Insert(LED));
-	assertEqual(blinking_LEDs.Counter(),1);
-
-	assertTrue(blinking_LEDs.Status(false));
-	blinking_LEDs.BrowseAll(false);
 	assertEqual(blinking_LEDs.Counter(),0);
 
-	assertTrue(blinking_LEDs.Insert(LED));
-	assertEqual(blinking_LEDs.Counter(),1);
-
-	blinking_LEDs.BrowseAll(true);
-	assertEqual(blinking_LEDs.Counter(),2);
-}
-
-test(StatusTenEntries)
-{
-	unsigned char id;
-
 	InsertSample();
-
-	blinking_LEDs.Top();
-	for(id=0; id<10; id++)
-	{
-		LED = *blinking_LEDs.Select();
-		assertEqual(LED.pin,id);
-		blinking_LEDs.Next();
-	}
-
-	assertTrue(blinking_LEDs.Select(2)!=NULL);
-	assertTrue(blinking_LEDs.Status(false));
-
-	assertTrue(blinking_LEDs.Select(8)!=NULL);
-	assertTrue(blinking_LEDs.Status(false));
-
 	assertEqual(blinking_LEDs.Counter(),10);
-	blinking_LEDs.BrowseAll(false);
-	assertEqual(blinking_LEDs.Counter(),8);
 
 	blinking_LEDs.Top();
-	LED = *blinking_LEDs.Select();
-	assertEqual(LED.pin,0);
+	do
+	{
+		assertTrue(blinking_LEDs.Delete());
+	} while (blinking_LEDs.Next());
 
-	blinking_LEDs.Next();
-	LED = *blinking_LEDs.Select();
-	assertEqual(LED.pin,1);
-
-	blinking_LEDs.Next();
-	LED = *blinking_LEDs.Select();
-	assertEqual(LED.pin,3);
-}
-
-test(BrowseAll)
-{
-	unsigned char id;
-
-	blinking_LEDs.Clean();
-
-	assertTrue(blinking_LEDs.Insert(LED,8));
-
-	assertTrue(blinking_LEDs.Insert(LED,18));
-	assertTrue(blinking_LEDs.Status(false));
-
-	assertTrue(blinking_LEDs.Insert(LED,28));
-
-	blinking_LEDs.BrowseAll(true);
-	blinking_LEDs.Top();
-	assertEqual(blinking_LEDs.GetId(),8);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),18);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),28);
-
-	blinking_LEDs.BrowseAll(false);
-	blinking_LEDs.Top();
-	assertEqual(blinking_LEDs.GetId(),8);
-
-	blinking_LEDs.Next();
-	assertEqual(blinking_LEDs.GetId(),28);
+	assertEqual(blinking_LEDs.Counter(),0);
 }
 
 test(Counter)
@@ -347,41 +183,35 @@ test(Counter)
 	assertEqual(blinking_LEDs.Counter(),10);
 }
 
+
 test(Top)
 {
 	unsigned char id;
 
 	blinking_LEDs.Clean();
-
 	assertFalse(blinking_LEDs.Top());
 
-	for(id=0; id<10; id++)
-		assertTrue(blinking_LEDs.Insert(LED));
-
-	blinking_LEDs.Select(0);
-	blinking_LEDs.Status(false);
+	InsertSample();
 
 	assertTrue(blinking_LEDs.Top());
-	assertEqual(blinking_LEDs.GetId(), 0);
+	assertEqual(blinking_LEDs.Select()->pin, 0);
 
-	blinking_LEDs.BrowseAll(false);
+	assertTrue(blinking_LEDs.Delete());
 	assertTrue(blinking_LEDs.Top());
-	assertEqual(blinking_LEDs.GetId(), 1);
+	assertEqual(blinking_LEDs.Select()->pin, 1);
 
-	blinking_LEDs.Select(1);
-	blinking_LEDs.Status(false);
+	blinking_LEDs.Clean();
+	assertFalse(blinking_LEDs.Top());
+
+	LED.pin = 88;
+	assertTrue(blinking_LEDs.Insert(LED));
 	assertTrue(blinking_LEDs.Top());
-	assertEqual(blinking_LEDs.GetId(), 2);
+	assertEqual(blinking_LEDs.Select()->pin, 88);
 
-	assertTrue(blinking_LEDs.Top());
-	for(id=0; id<10; id++)
-	{
-		blinking_LEDs.Status(false);
-		blinking_LEDs.Next();
-	}
-
+	assertTrue(blinking_LEDs.Delete());
 	assertFalse(blinking_LEDs.Top());
 }
+
 
 test(Next)
 {
@@ -393,7 +223,7 @@ test(Next)
 	id=0;
 	do
 	{
-		assertEqual(blinking_LEDs.GetId(),id++);
+		assertEqual(blinking_LEDs.Select()->pin,id++);
 	} while (blinking_LEDs.Next());
 
 }
@@ -545,9 +375,9 @@ int main(int argc, char *argv[]) {
 	Test::min_verbosity = TEST_VERBOSITY_NONE;
 
 	/// Initialize buffer on sram to manage maximum expected items
-	if (!blinking_LEDs.InitBuffer(30))
+	if (!blinking_LEDs.InitBuffer(MAX_NUM_ITEMS))
 	{
-		PRINT("Error: cannot allocate required memory");
+		Serial.println("\n*** Error: cannot allocate required memory ***");
 		delay(100);
 		exit(0);
 	}
@@ -555,18 +385,11 @@ int main(int argc, char *argv[]) {
 	Test::exclude("*");
 	Test::include("Clean");
 	Test::include("Insert");
-	Test::include("InsertCheckId");
-	Test::include("InsertId");
-	Test::include("InsertIdTenEntries");
+	Test::include("InsertMaximum");
 	Test::include("Select");
-	Test::include("SelectIdTenEntries");
 	Test::include("Update");
-	Test::include("UpdateSpecificId");
 	Test::include("Delete");
-	Test::include("GetId");
-	Test::include("Status");
-	Test::include("StatusTenEntries");
-	Test::include("BrowseAll");
+	Test::include("DeleteAll");
 	Test::include("Counter");
 	Test::include("Top");
 	Test::include("Next");
