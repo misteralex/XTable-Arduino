@@ -31,6 +31,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/Libraries/arduinounit-master}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/Libraries/arduinounit-master/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/Libraries/Firmata/utility}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.1457673415" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -48,6 +49,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/Libraries/arduinounit-master}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/Libraries/arduinounit-master/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BlinkingLEDs/Libraries/Firmata/utility}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.1765105285" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>
